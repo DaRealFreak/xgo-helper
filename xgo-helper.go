@@ -47,7 +47,7 @@ func main() {
 		"-e", "TARGETS=" + *targets,
 		"-e", "PACKAGE=" + *pkg,
 	}
-	args = append(args, "diebaumchen/xgo:1.0.0")
+	args = append(args, "diebaumchen/xgo")
 	_ = run(exec.Command("docker", args...))
 }
 
