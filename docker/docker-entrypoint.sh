@@ -48,9 +48,9 @@ cd /build/
 
 if [[ ${OUT} ]]; then
   # rename prefix of files in build directory if requested
-  rename "s/^provider/${OUT}/" ./*
+  rename "s/^provider/${OUT}/" -- *
 fi
 
 # remove API level of windows builds from file name for auto updater
 # which require the format {cmd}_{goos}_{goarch}{.ext} most of the times
-rename "s/windows-4.0/windows/" ./*
+rename "s/windows-4.0/windows/" -- *
