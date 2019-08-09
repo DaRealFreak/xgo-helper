@@ -43,7 +43,14 @@ fi
 # shellcheck disable=SC2034
 CGO_ENABLED=1 && xgo "${params[@]}" --dest /build/ --out provider .
 
+# move into build directory for after-build operations
+cd /build/
+
 if [[ ${OUT} ]]; then
   # rename prefix of files in build directory if requested
-  cd /build/ && rename "s/^provider/${OUT}/" *
+  rename "s/^provider/${OUT}/" ./*
 fi
+
+# remove API level of windows builds from file name for auto updater
+# which require the format {cmd}_{goos}_{goarch}{.ext} most of the times
+rename "s/windows-4.0/windows/" ./*
