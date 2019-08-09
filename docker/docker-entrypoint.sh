@@ -14,6 +14,7 @@
 # PACKAGE - option to define the path to the main directory within the project
 # TARGETS - option to define the build targets of xgo
 # SOURCE  - option to set the repository source (branch/tag/commit)
+# OUT     - option to set built binary prefix
 
 # stop execution on errors to prevent wrong builds
 set -e
@@ -41,3 +42,7 @@ fi
 
 # shellcheck disable=SC2034
 CGO_ENABLED=1 && xgo "${params[@]}" --dest /build/ --out provider .
+
+if [[ ${OUT} ]]; then
+  rename "s/^provider/${OUT}/" /build/*
+fi
