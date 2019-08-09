@@ -44,5 +44,6 @@ fi
 CGO_ENABLED=1 && xgo "${params[@]}" --dest /build/ --out provider .
 
 if [[ ${OUT} ]]; then
-  rename "s/^provider/${OUT}/" /build/*
+  # rename prefix of files in build directory if requested
+  cd /build/ && rename "s/^provider/${OUT}/" *
 fi
