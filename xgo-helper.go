@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type configuration struct {
@@ -35,7 +36,7 @@ func NewCmd() *cmd {
 			mainCmd.runDockerContainer(args[0])
 		},
 	}
-	mainCmd.rootCmd.Flags().StringVar(&mainCmd.configuration.dist, "dist", "", "Destination folder to put binaries in (empty = current)")
+	mainCmd.rootCmd.Flags().StringVar(&mainCmd.configuration.dist, "dest", "", "Destination folder to put binaries in (empty = current)")
 	mainCmd.rootCmd.Flags().StringVar(&mainCmd.configuration.module, "module", "", "Module name for local compilation (empty = external git repository)")
 	mainCmd.rootCmd.Flags().StringVar(&mainCmd.configuration.source, "source", "", "Repository source (branch/tag/commit hash)")
 	mainCmd.rootCmd.Flags().StringVar(&mainCmd.configuration.targets, "targets", "", "Build targets")
@@ -66,17 +67,35 @@ func (cmd *cmd) runDockerContainer(srcDir string) {
 		cmd.configuration.dist, _ = filepath.Abs(cmd.configuration.dist)
 	}
 
-	// if it's a local path make sure the path is absolute since windows docker doesn't like relative mounts
+	// only use the custom docker container if it's a local/private repository, use original xgo on external repositories
 	if _, err := os.Stat(srcDir); !os.IsNotExist(err) {
 		srcDir, _ = filepath.Abs(srcDir)
+	} else {
+		xgoArgs := os.Args[1:]
+		for i, arg := range xgoArgs {
+			// drop illegal arguments
+			if strings.Contains(arg, "-module") || strings.Contains(arg, "-source") {
+				xgoArgs = append(xgoArgs[:i], xgoArgs[i+1:]...)
+			}
+		}
+
+		err = cmd.run(exec.Command("xgo", xgoArgs...))
+		if err != nil {
+			// error occurred -> status code 1
+			os.Exit(1)
+		} else {
+			// no error occurred -> status code 0
+			os.Exit(0)
+		}
 	}
 
 	args := []string{
 		"run", "--rm",
-		"-v", cmd.configuration.dist + ":/build",
 		"-v", srcDir + ":/src",
+		"-v", cmd.configuration.dist + ":/build",
 		"-e", "MODULE=" + cmd.configuration.module,
 	}
+
 	if cmd.configuration.source != "" {
 		args = append(args, "-e", "SOURCE="+cmd.configuration.source)
 	}
