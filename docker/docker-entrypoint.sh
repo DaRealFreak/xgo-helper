@@ -51,6 +51,7 @@ if [[ ${OUT} ]]; then
   rename "s/^provider/${OUT}/" -- *
 fi
 
-# remove API level of windows builds from file name for auto updater
+# remove API level of windows and darwin builds from file name for auto updater
 # which require the format {cmd}_{goos}_{goarch}{.ext} most of the times
 rename "s/windows-4.0/windows/" -- *
+rename "s/darwin-10.6/darwin/" -- *
